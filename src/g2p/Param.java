@@ -4,27 +4,26 @@ public class Param {
     String inputFilename;
     String outputFilename;
 
-    String prefixProcess;
+    String prefixProcess = "";
 
-    int maxX;
-    int maxY;
+    int maxX = 2;
+    int maxY = 2;
 
-    boolean delX;
-    boolean delY;
-    boolean eqMap;
+    boolean delX = true;
+    boolean delY = false;
+    boolean eqMap = false;
 
     String maxFn;
-    double cutOff;
+    double cutOff = 0.01;
 
-    boolean printScore;
+    boolean printScore = false;
+    String nullChar = "_";
+    String sepChar = "}";
+    String sepInChar = "|";
 
-    String nullChar;
-    String sepChar;
-    String sepInChar;
+    int nBest = 1;
 
-    int nBest;
-
-    double initProbCut;
+    double initProbCut = 0.5;
 
     boolean errorInFile;
 }
