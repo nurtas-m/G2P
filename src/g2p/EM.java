@@ -61,22 +61,20 @@ public class EM {
 
         initialization(myParam, wordX, wordY);
 
-        log.info("Maximization ... ");
         maximization(myParam);
 
         int iter = 0;
 
         while (stillTrain) {
             iter++;
-            log.info("Iteration " + iter + "\n");
+            log.info("Iteration " + iter);
+
             // for each x and y pair //
-            log.info("Expectation ... ");
             for (int i = 0; i < wordX.size(); i++) {
                 // expectation //
                 expectation(myParam, wordX.get(i), wordY.get(i));
             }
 
-            log.info("Maximization ... ");
             double totalChange = maximization(myParam);
 
             log.info("Total probability change = " + totalChange);
@@ -617,7 +615,7 @@ public class EM {
 
     void readFileXY(Param myParam, String filename, ArrayList<ArrayList<String>> wordX, ArrayList<ArrayList<String>> wordY) throws IOException {
 
-        log.info("Reading file: " + filename + "\n");
+        log.info("Reading file: " + filename);
         BufferedReader inputFile = new BufferedReader(new FileReader(filename));
 
         while (true) {
