@@ -36,9 +36,6 @@ public class EM {
     HashMap<Pair, Double> counts;
     HashMap<Pair, Double> probs;
 
-    //HashMap<String, HashMap<String, Double>> probs;
-    //HashMap<String, HashMap<String, Double>> counts;
-
     public class QTable {
         double score;
         int backX;
@@ -103,17 +100,16 @@ public class EM {
                     if (myParam.delX) {
                         for (int j = 1; (j <= myParam.maxX) && (xl - j >= 0); j++) {
                             String ssX = String.join("", stringX.get(i).subList(xl - j, xl));
-                            //counts.put(ssX, new HashMap<>());
-                            //counts.get(ssX).put(myParam.nullChar, (double) 1);
-                            counts.put(new Pair(ssX,myParam.nullChar), (double) 1);
+                            Pair p = new Pair(ssX, myParam.nullChar);
+                            counts.put(new Pair(ssX,myParam.nullChar), 1.0);
                         }
                     }
 
                     if (myParam.delY) {
                         for (int k = 1; (k <= myParam.maxY) && (yl - k >= 0); k++) {
                             String ssY = String.join("", stringY.get(i).subList(yl - k, yl));
-                            //counts.get(myParam.nullChar).put(ssY, (double) 1);
-                            counts.put(new Pair(myParam.nullChar,ssY), (double) 1);
+                            Pair p = new Pair(myParam.nullChar,ssY);
+                            counts.put(p, 1.0);
                         }
                     }
 
@@ -122,7 +118,8 @@ public class EM {
 
                         for (int k = 1; (k <=myParam.maxY) && (yl - k >= 0); k++){
                             String ssY = String.join("", stringY.get(i).subList(yl - k, yl));
-                            counts.put(new Pair(ssX, ssY), (double) 1);
+                            counts.put(new Pair(ssX, ssY), 1.0);
+
                         }
                     }
                 }
@@ -141,20 +138,6 @@ public class EM {
 
         HashMap<Pair, Double> newProbs = new HashMap<>();
 
-        //for (Map.Entry<String, HashMap<String, Double>> entry : counts.entrySet()) {
-        //    for (Map.Entry<String, Double> entry1 : entry.getValue().entrySet()) {
-        //        if (!countX.containsKey(entry.getKey())) {
-        //            countX.put(entry.getKey(), 0.0);
-        //        }
-        //        if (!countY.containsKey(entry1.getKey())) {
-        //            countY.put(entry1.getKey(), 0.0);
-        //        }
-        //        countX.put(entry.getKey(), countX.get(entry.getKey()) + entry1.getValue());
-        //        countY.put(entry1.getKey(), countY.get(entry1.getKey()) + entry1.getValue());
-        //        totalCount += entry1.getValue();
-        //    }
-        //}
-
         for (Map.Entry<Pair, Double> entry : counts.entrySet()) {
             if (!countX.containsKey(entry.getKey().x)) {
                 countX.put(entry.getKey().x, 0.0);
@@ -166,58 +149,6 @@ public class EM {
             countY.put(entry.getKey().y, countY.get(entry.getKey().y) + entry.getValue());
                 totalCount += entry.getValue();
         }
-
-        /*for (Map.Entry<String, HashMap<String, Double>> entry : counts.entrySet()) {
-            for (Map.Entry<String, Double> entry1 : entry.getValue().entrySet()) {
-                if (countY.get(entry1.getKey()) == 0) {
-                    System.out.println("Error : zero probability problem with y= " + entry1.getKey());
-                    System.exit(-1);
-                }
-
-                if (countX.get(entry.getKey()) == 0) {
-                    System.out.println("Error : zero probability problem with y= " + entry.getKey());
-                    System.exit(-1);
-                }
-
-                updateProb = 0;
-                switch (myParam.maxFn) {
-                    case "conXY":
-// p(x|y) //
-
-                        updateProb = entry1.getValue() / countY.get(entry1.getKey());
-                        break;
-                    case "conYX":
-// p(y|x) //
-
-                        updateProb = entry1.getValue() / countX.get(entry.getKey());
-                        break;
-                    case "joint":
-// p(x,y) //
-
-                        updateProb = entry1.getValue() / totalCount;
-                        break;
-                    default:
-                        System.out.println("Error : can't find maximization function used " + myParam.maxFn);
-                        System.exit(-1);
-                }
-                if (!probs.containsKey(entry.getKey())) {
-                    probs.put(entry.getKey(), new HashMap<>());
-                }
-                if (!probs.get(entry.getKey()).containsKey(entry1.getKey())) {
-                    probs.get(entry.getKey()).put(entry1.getKey(), 0.0);
-                }
-                totalChange = totalChange + Math.abs(probs.get(entry.getKey()).get(entry1.getKey()) - updateProb);
-
-                if (!newProbs.containsKey(entry.getKey())) {
-                    newProbs.put(entry.getKey(), new HashMap<>());
-                }
-                if (!newProbs.get(entry.getKey()).containsKey(entry1.getKey())) {
-                    newProbs.get(entry.getKey()).put(entry1.getKey(), 0.0);
-                }
-
-                newProbs.get(entry.getKey()).put(entry1.getKey(), updateProb);
-            }
-        }*/
 
         for (Map.Entry<Pair, Double> entry : counts.entrySet()) {
             if (countY.get(entry.getKey().y) == 0) {
@@ -293,16 +224,17 @@ public class EM {
         for (int xl = 0; xl <= x.size(); ++xl) {
             for (int yl = 0; yl <= y.size(); ++yl) {
                 if ((xl > 0) && (myParam.delX)) {
-                    for (int i = 1; (i <= myParam.maxX) && (xl - i >= 0); ++i) {
+                    for (int i = 1; (i <= myParam.maxX) && (xl - i >= 0); i++) {
                         String ssX = String.join("", x.subList(xl - i, xl));
                         Pair p = new Pair(ssX, myParam.nullChar);
 
                         double updateCount;
-                        //updateCount = (alpha[xl - i][yl] * probs.get(ssX).get(myParam.nullChar) * beta[xl][yl]) / alpha_x_y;
                         updateCount = (alpha[xl - i][yl] * probs.get(p) * beta[xl][yl]) / alpha_x_y;
 
                         if (updateCount != 0) {
-                            //counts.get(ssX).put(myParam.nullChar, counts.get(ssX).get(myParam.nullChar) + updateCount);
+                            if (!counts.containsKey(p))
+                                counts.put(p, 0.0);
+
                             counts.put(p, counts.get(p) + updateCount);
                         }
                     }
@@ -316,6 +248,9 @@ public class EM {
 
                         double updateCount = (alpha[xl][yl - j] * probs.get(p) * beta[xl][yl]) / alpha_x_y;
                         if (updateCount != 0) {
+                            if (!counts.containsKey(p))
+                                counts.put(p, 0.0);
+
                             counts.put(p, counts.get(p) + updateCount);
                         }
                     }
@@ -335,6 +270,7 @@ public class EM {
                             if (updateCount != 0) {
                                 if (!counts.containsKey(p))
                                     counts.put(p, 0.0);
+
                                 counts.put(p, counts.get(p) + updateCount);
                             }
                         }
@@ -361,6 +297,11 @@ public class EM {
                     for (int i = 1; (i <= myParam.maxX) && (xl - i >= 0); i++) {
                         String ssX = String.join("", x.subList(xl - i, xl));
                         Pair p = new Pair(ssX, myParam.nullChar);
+
+                        if (!probs.containsKey(p)) {
+                            probs.put(p, 0.0);
+                        }
+
                         alpha[xl][yl] = alpha[xl][yl] + probs.get(p) * alpha[xl - i][yl];
                     }
                 }
@@ -368,7 +309,13 @@ public class EM {
                 if ((yl > 0) && (myParam.delY)) {
                     for (int j = 1; (j <= myParam.maxY) && (yl - j >= 0); j++) {
                         String ssY = String.join("", y.subList(yl - j, yl));
-                        alpha[xl][yl] += probs.get(new Pair(myParam.nullChar, ssY)) * alpha[xl][yl - j];
+                        Pair p = new Pair(myParam.nullChar, ssY);
+
+                        if (!probs.containsKey(p)) {
+                            probs.put(p, 0.0);
+                        }
+
+                        alpha[xl][yl] += probs.get(p) * alpha[xl][yl - j];
                     }
                 }
 
@@ -407,7 +354,7 @@ public class EM {
 
                 if ((xl < x.size()) && (myParam.delX)) {
                     for (int i = 1; (i <= myParam.maxX) && (xl + i <= x.size()); i++) {
-                        String ssX = String.join("", x.subList(xl - i, xl));
+                        String ssX = String.join("", x.subList(xl, xl + i));
                         Pair p = new Pair(ssX, myParam.nullChar);
                         beta[xl][yl] += probs.get(p) * beta[xl + i][yl];
                     }
@@ -415,7 +362,7 @@ public class EM {
 
                 if ((yl < y.size()) && (myParam.delY)) {
                     for (int j = 1; (j <= myParam.maxY) && (yl + j <= y.size()); j++) {
-                        String ssY = String.join("", y.subList(yl - j, yl));
+                        String ssY = String.join("", y.subList(yl, yl + j));
                         Pair p = new Pair(myParam.nullChar, ssY);
                         beta[xl][yl] += probs.get(p) * beta[xl][yl + j];
                     }
@@ -456,7 +403,7 @@ public class EM {
         double alignCount = 0;
         double noAlignCount = 0;
 
-        for (int i = 0; i < wordX.size(); ++i) {
+        for (int i = 0; i < wordX.size(); i++) {
             ArrayList<ArrayList<String>> nAlignX = new ArrayList<>();
             ArrayList<ArrayList<String>> nAlignY = new ArrayList<>();
             ArrayList<Double> nScore;
@@ -533,7 +480,13 @@ public class EM {
                 if ((xl > 0) && (myParam.delX)) {
                     for (int i = 1; (i <= myParam.maxX) && (xl - i >= 0); i++) {
                         String ssX = String.join("", x.subList(xl - i, xl));
-                        double score = Math.log(probs.get(new Pair(ssX, myParam.nullChar))) * i;
+                        Pair p = new Pair(ssX, myParam.nullChar);
+
+                        double prob = 0.0;
+                        if (probs.containsKey(p))
+                            prob = probs.get(p);
+
+                        double score = Math.log(prob) * i;
                         for (int rindex = 0; rindex < Q[xl - i][yl].size(); rindex++) {
                             QTable qtmp = new QTable();
                             qtmp.backX = i;
@@ -548,8 +501,13 @@ public class EM {
                 if ((yl > 0) && (myParam.delY)) {
                     for (int j = 1; (j <= myParam.maxY) && (yl - j >= 0); j++) {
                         String ssY = String.join("", y.subList(yl - j, yl));
+                        Pair p = new Pair(myParam.nullChar, ssY);
 
-                        double score = Math.log(probs.get(new Pair(myParam.nullChar, ssY))) * j;
+                        double prob = 0.0;
+                        if (probs.containsKey(p))
+                            prob = probs.get(p);
+
+                        double score = Math.log(prob) * j;
 
                         for (int rindex = 0; rindex < Q[xl][yl - j].size(); rindex++) {
                             QTable qtmp = new QTable();
@@ -576,8 +534,9 @@ public class EM {
 
 
                             double prob = 0.0;
-                            if (probs.containsKey(new Pair(ssX, ssY)))
-                                prob = probs.get(new Pair(ssX, ssY));
+                            Pair p = new Pair(ssX, ssY);
+                            if (probs.containsKey(p))
+                                prob = probs.get(p);
 
                             double score = Math.log(prob) * Math.max(i, j);
                             for (int rindex = 0; rindex < Q[xl - i][yl - j].size(); rindex++) {
@@ -664,9 +623,6 @@ public class EM {
 
         while (true) {
             String line;
-            String[] lineList;
-
-            // read each line and split column by space //
 
             line = inputFile.readLine();
 
@@ -674,9 +630,9 @@ public class EM {
                 break;
             }
 
-            lineList = line.split("\t");
-            wordX.add(new ArrayList<>(Arrays.asList(lineList[0].split(" "))));
-            wordY.add(new ArrayList<>(Arrays.asList(lineList[1].split(" "))));
+            ArrayList<String> items = new ArrayList<>(Arrays.asList(line.split("\\s")));
+            wordX.add(new ArrayList<>(Arrays.asList(items.get(0).split(""))));
+            wordY.add(new ArrayList<>(items.subList(1, items.size())));
 
         }
         inputFile.close();

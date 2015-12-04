@@ -14,7 +14,7 @@ public class G2P {
         param.maxX = 2;
         param.maxY = 2;
 
-        param.delX = false;
+        param.delX = true;
         param.delY = false;
         param.eqMap = false;
         param.cutOff = 0.01;
