@@ -119,12 +119,7 @@ public class EM {
 
                     for (int j = 1; (j <= myParam.maxX) && (xl - j >= 0); j++) {
                         String ssX = String.join("", stringX.get(i).subList(xl - j, xl));
-                        //if (!counts.containsKey(ssX))
-                        //    counts.put(ssX, new HashMap<>());
-                        //for (int k = 1; (k <= myParam.maxY) && (yl - k >= 0); k++) {
-                        //    String ssY = String.join("", stringY.get(i).subList(yl - k, yl));
-                        //    counts.get(ssX).put(ssY, (double) 1);
-                        //}
+
                         for (int k = 1; (k <=myParam.maxY) && (yl - k >= 0); k++){
                             String ssY = String.join("", stringY.get(i).subList(yl - k, yl));
                             counts.put(new Pair(ssX, ssY), (double) 1);
