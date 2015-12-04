@@ -2,9 +2,12 @@ package g2p;
 
 import java.io.*;
 import java.util.*;
+import java.util.logging.Logger;
 
 
 public class EM {
+
+    private static Logger log = Logger.getLogger(EM.class.getName());
 
     public class Pair {
         String x;
@@ -58,25 +61,25 @@ public class EM {
 
         initialization(myParam, wordX, wordY);
 
-        System.out.println("Maximization ... ");
+        log.info("Maximization ... ");
         maximization(myParam);
 
         int iter = 0;
 
         while (stillTrain) {
             iter++;
-            System.out.println("Iteration " + iter + "\n");
+            log.info("Iteration " + iter + "\n");
             // for each x and y pair //
-            System.out.println("Expectation ... ");
+            log.info("Expectation ... ");
             for (int i = 0; i < wordX.size(); i++) {
                 // expectation //
                 expectation(myParam, wordX.get(i), wordY.get(i));
             }
 
-            System.out.println("Maximization ... ");
+            log.info("Maximization ... ");
             double totalChange = maximization(myParam);
 
-            System.out.println("Total probability change = " + totalChange);
+            log.info("Total probability change = " + totalChange);
 
             // stop by the probability change condition //
             if ((totalChange <= myParam.cutOff) && (myParam.cutOff < 1)) {
@@ -152,12 +155,12 @@ public class EM {
 
         for (Map.Entry<Pair, Double> entry : counts.entrySet()) {
             if (countY.get(entry.getKey().y) == 0) {
-                System.out.println("Error : zero probability problem with y= " + entry.getKey().y);
+                log.warning("Error : zero probability problem with y= " + entry.getKey().y);
                 System.exit(-1);
             }
 
             if (countX.get(entry.getKey().x) == 0) {
-                System.out.println("Error : zero probability problem with y= " + entry.getKey().x);
+                log.warning("Error : zero probability problem with y= " + entry.getKey().x);
                 System.exit(-1);
             }
 
@@ -176,7 +179,7 @@ public class EM {
                     updateProb = entry.getValue() / totalCount;
                     break;
                 default:
-                    System.out.println("Error : can't find maximization function used " + myParam.maxFn);
+                    log.warning("Error : can't find maximization function used " + myParam.maxFn);
                     System.exit(-1);
                 }
                 if (!probs.containsKey(entry.getKey())) {
@@ -393,9 +396,9 @@ public class EM {
 
         //reading input file//
         readFileXY(myParam, myParam.inputFilename, wordX, wordY);
-        System.out.println("There are " + wordX.size() + " pairs to be aligned");
-        System.out.println("Write aligned data to : " + myParam.outputFilename);
-        System.out.println("Write un-aligned data to : " + myParam.outputFilename + ".err");
+        log.info("There are " + wordX.size() + " pairs to be aligned");
+        log.info("Write aligned data to : " + myParam.outputFilename);
+        log.info("Write un-aligned data to : " + myParam.outputFilename + ".err");
 
         BufferedWriter alignedOutput = new BufferedWriter(new FileWriter(myParam.outputFilename));
         BufferedWriter noAlignedOutput = new BufferedWriter(new FileWriter(myParam.outputFilename + ".err"));
@@ -417,7 +420,7 @@ public class EM {
                 // count number of examples that have less than n alignment candidates //
                 if (nScore.size() < myParam.nBest) {
                     ++lessNbest;
-                    System.out.println(String.join("", wordX.get(i)) + " " + String.join("", wordY.get(i)) + " has " + nScore.size() + " alignments");
+                    log.info(String.join("", wordX.get(i)) + " " + String.join("", wordY.get(i)) + " has " + nScore.size() + " alignments");
                 }
 
                 for (int nbest = 0; nbest < nScore.size(); nbest++) {
@@ -443,12 +446,12 @@ public class EM {
         alignedOutput.close();
         noAlignedOutput.close();
 
-        System.out.println("Aligned " + alignCount + " pairs");
+        log.info("Aligned " + alignCount + " pairs");
         if (noAlignCount > 0) {
-            System.out.println("No aligned " + noAlignCount + " pairs");
+            log.info("No aligned " + noAlignCount + " pairs");
         }
 
-        System.out.println("There are " + lessNbest + " example pairs having less than " + myParam.nBest + " alignment candidates \n");
+        log.info("There are " + lessNbest + " example pairs having less than " + myParam.nBest + " alignment candidates \n");
     }
 
     ArrayList<Double> nViterbiAlign(Param myParam, ArrayList<String> x, ArrayList<String> y, ArrayList<ArrayList<String>> alignX, ArrayList<ArrayList<String>> alignY) {
@@ -608,13 +611,13 @@ public class EM {
 
     public void printAlphaBeta(double[][] alpha) {
         for (double[] ar : alpha) {
-            System.out.println(Arrays.toString(ar));
+            log.info(Arrays.toString(ar));
         }
     }
 
     void readFileXY(Param myParam, String filename, ArrayList<ArrayList<String>> wordX, ArrayList<ArrayList<String>> wordY) throws IOException {
 
-        System.out.println("Reading file: " + filename + "\n");
+        log.info("Reading file: " + filename + "\n");
         BufferedReader inputFile = new BufferedReader(new FileReader(filename));
 
         while (true) {
