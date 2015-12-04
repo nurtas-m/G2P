@@ -419,14 +419,10 @@ public class EM {
                     ++lessNbest;
                     System.out.println(String.join("", wordX.get(i)) + " " + String.join("", wordY.get(i)) + " has " + nScore.size() + " alignments");
                 }
-                for (int nbest = 0; nbest < nScore.size(); ++nbest) {
-                    for (int k = 0; k < nAlignX.get(nbest).size(); ++k) {
-                        alignedOutput.write(nAlignX.get(nbest).get(k) + myParam.sepChar);
-                    }
-                    alignedOutput.write("\t");
 
-                    for (int k = 0; k < nAlignY.get(nbest).size(); k++) {
-                        alignedOutput.write(nAlignY.get(nbest).get(k) + myParam.sepChar);
+                for (int nbest = 0; nbest < nScore.size(); nbest++) {
+                    for (int k = 0; k < nAlignX.get(nbest).size(); k++) {
+                        alignedOutput.write(nAlignX.get(nbest).get(k) + myParam.sepChar + nAlignY.get(nbest).get(k) + " ");
                     }
 
                     if (myParam.printScore) {

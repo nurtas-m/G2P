@@ -21,8 +21,8 @@ public class G2P {
         param.printScore = false;
         param.prefixProcess = "";
         param.nullChar = "_";
-        param.sepChar = "|";
-        param.sepInChar = ":";
+        param.sepChar = "}";
+        param.sepInChar = "|";
         param.nBest = 1;
         param.initProbCut = 0.5;
 
