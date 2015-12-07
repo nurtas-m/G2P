@@ -7,7 +7,7 @@ import java.util.logging.Logger;
 
 public class EM {
 
-    private static Logger log = Logger.getLogger(EM.class.getName());
+    public static Logger log = Logger.getLogger(EM.class.getName());
 
     public class Pair {
         String x;
@@ -634,4 +634,19 @@ public class EM {
         }
         inputFile.close();
     }
+
+    public String getAlignedString(Param testParam, EM em, ArrayList<String> wordX, ArrayList<String> wordY) {
+        ArrayList<ArrayList<String>> nAlignX = new ArrayList<>();
+        ArrayList<ArrayList<String>> nAlignY = new ArrayList<>();
+
+        em.nViterbiAlign(testParam, wordX, wordY, nAlignX, nAlignY);
+
+        StringBuilder result = new StringBuilder();
+
+        for (int k = 0; k < nAlignX.get(0).size(); k++) {
+            result.append(nAlignX.get(0).get(k) + testParam.sepChar + nAlignY.get(0).get(k) + " ");
+        }
+        return result.toString();
+    }
+
 }

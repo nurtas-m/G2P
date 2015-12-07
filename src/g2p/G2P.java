@@ -1,6 +1,7 @@
 package g2p;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 public class G2P {
 
@@ -12,7 +13,6 @@ public class G2P {
         param.maxFn = "conYX";
 
         em.training(param);
-
         em.createAlignments(param);
     }
 }

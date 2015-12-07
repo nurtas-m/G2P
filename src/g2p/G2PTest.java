@@ -2,36 +2,53 @@ package g2p;
 
 import org.junit.Test;
 
-import java.io.IOException;
+import java.io.*;
+import java.util.ArrayList;
 
 import static org.junit.Assert.assertEquals;
 
 public class G2PTest {
+
     @Test
     public void testAdd() throws IOException {
-        Param param = new Param();
+        Param testParam = new Param();
         EM em = new EM();
-        param.inputFilename = "toAlignEx";
-        param.outputFilename = "toAlignOut";
-        param.maxFn = "conYX";
+        testParam.inputFilename = "toAlignEx";
+        testParam.maxFn = "conYX";
 
-        param.maxX = 2;
-        param.maxY = 2;
+        //Expected Output
+        ArrayList<String> testExpWord = new ArrayList<>();
+        BufferedReader testExpectedFile = new BufferedReader(new FileReader("toAlignExpOut_test"));
 
-        param.delX = true;
-        param.delY = false;
-        param.eqMap = false;
-        param.cutOff = 0.01;
-        param.printScore = false;
-        param.prefixProcess = "";
-        param.nullChar = "_";
-        param.sepChar = "}";
-        param.sepInChar = "|";
-        param.nBest = 1;
-        param.initProbCut = 0.5;
+        while (true) {
+            String line;
+            line = testExpectedFile.readLine();
 
-        em.training(param);
+            if (line == null) {
+                break;
+            }
 
-        em.createAlignments(param);
+            testExpWord.add(line);
+        }
+
+        testExpectedFile.close();
+
+        ArrayList<ArrayList<String>> wordX = new ArrayList<>();
+        ArrayList<ArrayList<String>> wordY = new ArrayList<>();
+
+        //reading input file//
+        em.readFileXY(testParam, testParam.inputFilename, wordX, wordY);
+
+        em.training(testParam);
+
+
+        for (int i = 0; i < testExpWord.size(); i++) {
+            String result = em.getAlignedString(testParam, em, wordX.get(i), wordY.get(i));
+
+            assertEquals(testExpWord.get(i), result);
+        }
+
     }
+
+
 }
