@@ -4,6 +4,8 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 
 class Convertor {
 
@@ -25,7 +27,7 @@ class Convertor {
         ArrayList<TreeElement> final_leafs = new ArrayList<TreeElement>();
     }
 
-    public Tree init_tree() {
+    public Tree initTree() {
         ArrayList<TreeElement> nodes = new ArrayList<TreeElement>();
 
         TreeElement node_0 = new TreeElement();
@@ -38,20 +40,18 @@ class Convertor {
         return tree1;
     }
 
-    public static void extend_leaf(ArrayList<TreeElement> new_leafs, String word, TreeElement leaf, ArrayList<String> grams, ArrayList<Float> probs){
+    public static void extendLeaf(ArrayList<TreeElement> new_leafs, String word, TreeElement leaf, ArrayList<String> grams, ArrayList<Float> probs){
         String history[] = new String[1000];
         /// Fill history array from tree
         int i = 0;
-        TreeElement history_leaf = leaf;
-        while (history_leaf.prev_index != 0) {
-            history[i] = history_leaf.gram;
+        TreeElement historyLeaf = leaf;
+        while (historyLeaf.prev_index != 0) {
+            history[i] = historyLeaf.gram;
             i++;
-            history_leaf = tree.nodes.get(history_leaf.prev_index);
+            historyLeaf = tree.nodes.get(historyLeaf.prev_index);
         }
 
-        int n_unigrams = ngram_model_get_counts(grams);
-
-        for (i = 0; i < n_unigrams; i++) {
+        for (i = 0; i < grams.size(); i++) {
 
             String unigram = String.join("", grams.get(i).split("}")[0]);
 
@@ -72,14 +72,10 @@ class Convertor {
         return;
     }
 
-    public static int ngram_model_get_counts(ArrayList<String> grams){
-        return 729;
-    }
-
     public static void main(String args[]) throws IOException {
 
         Convertor con = new Convertor();
-        con.init_tree();
+        con.initTree();
         String word = "accounts";
 
         BufferedReader inputFile = new BufferedReader(new FileReader("/home/nurtas/Downloads/cmudict-stress/cmudict.dic.arpa.unig2"));
@@ -96,37 +92,44 @@ class Convertor {
                 break;
             }
 
-            String[] tab_split = line.split("\t");
-            probs.add(Float.parseFloat(String.join("", tab_split[0])));
-            grams.add(String.join("", tab_split[1]));
+            String[] tabSplit = line.split("\t");
+            probs.add(Float.parseFloat(String.join("", tabSplit[0])));
+            grams.add(String.join("", tabSplit[1]));
 
         }
         inputFile.close();
 
-        tree = con.init_tree();
-        int search_width = 10;
+        tree = con.initTree();
+        int searchWidth = 10;
         int k = 0;
 
         while(tree.leafs.size() > 0) {
 
-            ArrayList<TreeElement> new_leafs = new ArrayList<TreeElement>(); // list of new elements
+            ArrayList<TreeElement> newLeafs = new ArrayList<TreeElement>(); // list of new elements
 
             for (int i = 0; i < tree.leafs.size(); i++) {
                 TreeElement leaf = tree.leafs.get(i);
-                extend_leaf(new_leafs, word, leaf, grams, probs);
+                extendLeaf(newLeafs, word, leaf, grams, probs);
             }
+
+            Collections.sort(newLeafs, new Comparator<TreeElement>() {
+                public int compare(TreeElement o1, TreeElement o2)
+                {
+                    return o1.prob < o2.prob ? 1 : -1 ;
+                }
+            });
 
             tree.leafs.clear();
 
-            for (int i = 0; i < search_width; i++) {
-                tree.nodes.add(new_leafs.get(i));
-                new_leafs.get(i).index = tree.nodes.size() - 1;
-                if (new_leafs.get(i).fin) {
+            for (int i = 0; i < searchWidth; i++) {
+                tree.nodes.add(newLeafs.get(i));
+                newLeafs.get(i).index = tree.nodes.size() - 1;
+                if (newLeafs.get(i).fin) {
                     // Add to the list of final results
-                    tree.final_leafs.add(new_leafs.get(i));
+                    tree.final_leafs.add(newLeafs.get(i));
                 } else {
                     // Add for the next extension
-                    tree.leafs.add(new_leafs.get(i));
+                    tree.leafs.add(newLeafs.get(i));
                 }
             }
 
@@ -143,11 +146,11 @@ class Convertor {
     }
 
     public static TreeElement best(ArrayList<TreeElement> leafs){
-        float max_prob = -100;
+        float maxProb = -100;
         int imax = 0;
         for (int i = 0; i < leafs.size(); i++){
-            if (leafs.get(i).prob > max_prob) {
-                max_prob = leafs.get(i).prob;
+            if (leafs.get(i).prob > maxProb) {
+                maxProb = leafs.get(i).prob;
                 imax = i;
             }
         }
