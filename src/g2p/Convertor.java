@@ -1,11 +1,13 @@
 package g2p;
 
+import com.sun.org.apache.xml.internal.security.algorithms.JCEMapper;
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
+import java.util.List;
 
 class Convertor {
 
@@ -21,18 +23,19 @@ class Convertor {
         int index; // index in tree array
         int prev_index; // parent index in a tree array
 
-        public float getProb(){
-            return prob;
-        }
-
         public TreeElement(float prob){
             this.prob = prob;
         }
 
         public int compareTo(TreeElement compareTreeElement) {
 
-            float compareProb = ((TreeElement) compareTreeElement).getProb();
-            return compareProb > this.prob ? 1 : -1 ;
+            float compareProb = ((TreeElement) compareTreeElement).prob;
+
+            if (compareProb > this.prob)
+                return 1;
+            else if (compareProb < this.prob)
+                return -1;
+            else return 0;
         }
 
     }
@@ -48,7 +51,7 @@ class Convertor {
         return;
     }
 
-    public void extendLeaf(ArrayList<TreeElement> new_leafs, String word, TreeElement leaf, ArrayList<String> grams, ArrayList<Float> probs){
+    public void extendLeaf(ArrayList<TreeElement> new_leafs, String word, TreeElement leaf, ArrayList<String> grams_raw, ArrayList<Float> probs){
         String history[] = new String[1000];
         /// Fill history array from tree
         int i = 0;
@@ -59,15 +62,28 @@ class Convertor {
             historyLeaf = nodes.get(historyLeaf.prev_index);
         }
 
-        for (i = 0; i < grams.size(); i++) {
+        for (i = 0; i < grams_raw.size(); i++) {
 
-            String unigram = String.join("", grams.get(i).split("}")[0]);
+            String[] splittedGram = grams_raw.get(i).split("}");
+
+            ArrayList<String> grams = new ArrayList<String>();
+
+            String[] pipeSplit = splittedGram[0].split("\\|");
+            String r = "";
+
+            for (int k = 0; k < pipeSplit.length; k++){
+                r = r + pipeSplit[k];
+            }
+            grams.add(String.join("", r));
+
+
+            String unigram = String.join("", r);
 
             if (! word.startsWith(unigram, leaf.wordPos))
                 continue; // skip this unigram
 
             TreeElement newElem = new TreeElement((float) 0.0);
-            newElem.gram = grams.get(i);
+            newElem.gram = splittedGram[1];
             newElem.prob =  leaf.prob + probs.get(i);
             newElem.prev_index = leaf.index;
             newElem.index = -1; // not yet computed
@@ -82,17 +98,16 @@ class Convertor {
 
     public static void main(String args[]) throws IOException {
         Convertor con = new Convertor();
-        con.Convertor();
+        con.initTree();
+        String word = "cup";
+        String res = con.convertor(word);
     }
 
-    public void Convertor() throws IOException {
+    public String convertor(String word) throws IOException {
 
-        Convertor con = new Convertor();
-        String word = "accounts";
-
-        BufferedReader inputFile = new BufferedReader(new FileReader("/home/nurtas/Downloads/cmudict-stress/cmudict.dic.arpa.unig2"));
+        BufferedReader inputFile = new BufferedReader(new FileReader("cmudict.dic.arpa.unig"));
         ArrayList<Float> probs = new ArrayList<Float>();
-        ArrayList<String> grams = new ArrayList<String>();
+        ArrayList<String> grams_raw = new ArrayList<String>();
         ArrayList<Float> backTraces = new ArrayList<Float>();
 
         while (true) {
@@ -106,12 +121,11 @@ class Convertor {
 
             String[] tabSplit = line.split("\t");
             probs.add(Float.parseFloat(String.join("", tabSplit[0])));
-            grams.add(String.join("", tabSplit[1]));
+            grams_raw.add(String.join("", tabSplit[1]));
 
         }
         inputFile.close();
 
-        con.initTree();
         int searchWidth = 10;
         int k = 0;
 
@@ -121,14 +135,14 @@ class Convertor {
 
             for (int i = 0; i < leafs.size(); i++) {
                 TreeElement leaf = leafs.get(i);
-                extendLeaf(newLeafs, word, leaf,     grams, probs);
+                extendLeaf(newLeafs, word, leaf,     grams_raw, probs);
             }
 
             Collections.sort(newLeafs);
 
             leafs.clear();
 
-            for (int i = 0; i < searchWidth; i++) {
+            for (int i = 0; (i < searchWidth) && (i < newLeafs.size()); i++) {
                 nodes.add(newLeafs.get(i));
                 newLeafs.get(i).index = nodes.size() - 1;
                 if (newLeafs.get(i).fin) {
@@ -144,12 +158,16 @@ class Convertor {
 
         // Backtrace to repair files
         TreeElement result;
-        result = Collections.max(finalLeafs);
+        result = Collections.min(finalLeafs);
+        String resString = result.gram;
         while (result.prev_index != 0) {
             result = nodes.get(result.prev_index);
+            resString = result.gram + " " + resString;
         }
         result = nodes.get(result.prev_index);
+        resString = result.gram + " " + resString;
 
+        return resString;
     }
 
 }
