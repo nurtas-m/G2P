@@ -7,7 +7,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 
 class Convertor {
 
@@ -99,16 +98,12 @@ class Convertor {
     public static void main(String args[]) throws IOException {
         Convertor con = new Convertor();
         con.initTree();
-        String word = "cup";
-        String res = con.convertor(word);
-    }
+        String word = "tiano";
 
-    public String convertor(String word) throws IOException {
-
+        //Unigrams
         BufferedReader inputFile = new BufferedReader(new FileReader("cmudict.dic.arpa.unig"));
         ArrayList<Float> probs = new ArrayList<Float>();
         ArrayList<String> grams_raw = new ArrayList<String>();
-        ArrayList<Float> backTraces = new ArrayList<Float>();
 
         while (true) {
 
@@ -126,8 +121,12 @@ class Convertor {
         }
         inputFile.close();
 
+        String res = con.convertor(word, grams_raw, probs);
+    }
+
+    public String convertor(String word, ArrayList<String> grams_raw, ArrayList<Float> probs) throws IOException {
+
         int searchWidth = 10;
-        int k = 0;
 
         while(leafs.size() > 0) {
 
@@ -135,12 +134,32 @@ class Convertor {
 
             for (int i = 0; i < leafs.size(); i++) {
                 TreeElement leaf = leafs.get(i);
-                extendLeaf(newLeafs, word, leaf,     grams_raw, probs);
+                extendLeaf(newLeafs, word, leaf, grams_raw, probs);
             }
 
             Collections.sort(newLeafs);
 
             leafs.clear();
+
+            int ii = 1;
+            ArrayList<Integer> wordPosMax = new ArrayList<>();
+            wordPosMax.add(newLeafs.get(0).wordPos);
+
+            while (true){
+                if (newLeafs.size()>ii) {
+                    if (wordPosMax.contains(newLeafs.get(ii).wordPos)) {
+                        newLeafs.remove(ii);
+                    }
+                    else {
+                        wordPosMax.add(newLeafs.get(ii).wordPos);
+                        ii++;
+                    }
+                }
+                else {
+                    break;
+                }
+            }
+
 
             for (int i = 0; (i < searchWidth) && (i < newLeafs.size()); i++) {
                 nodes.add(newLeafs.get(i));
@@ -159,13 +178,22 @@ class Convertor {
         // Backtrace to repair files
         TreeElement result;
         result = Collections.min(finalLeafs);
-        String resString = result.gram;
+        String resString = "";
+        if (!result.gram.equals("_")){
+            resString = result.gram;
+        }
+
         while (result.prev_index != 0) {
             result = nodes.get(result.prev_index);
+            if (!result.gram.equals("_")){
+                resString = result.gram + " " + resString;
+            }
+        }
+
+        result = nodes.get(result.prev_index);
+        if (!result.gram.equals("_")){
             resString = result.gram + " " + resString;
         }
-        result = nodes.get(result.prev_index);
-        resString = result.gram + " " + resString;
 
         return resString;
     }
